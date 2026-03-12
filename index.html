@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaflet 여행 지도</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #map { width: 100%; height: 700px; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    // 1) 지도 생성
+    const map = L.map('map').setView([51.5074, -0.1278], 6); // 런던 기준
+
+    // 2) 배경지도(tile layer) 추가 - OpenStreetMap
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3) 마커 추가
+    const london = L.marker([51.5074, -0.1278]).addTo(map);
+    london.bindPopup('<b>Day 1</b><br>London').openPopup();
+
+    // 4) 다른 도시 추가
+    const oxford = L.marker([51.7520, -1.2577]).addTo(map);
+    oxford.bindPopup('<b>Day 2</b><br>Oxford');
+
+    const edinburgh = L.marker([55.9533, -3.1883]).addTo(map);
+    edinburgh.bindPopup('<b>Day 3</b><br>Edinburgh');
+
+    // 5) 이동 경로(선) 추가
+    const route = L.polyline([
+      [51.5074, -0.1278],
+      [51.7520, -1.2577],
+      [55.9533, -3.1883]
+    ], {
+      color: '#b8860b',
+      weight: 3,
+      dashArray: '6, 6'
+    }).addTo(map);
+
+    // 6) 전체 경로가 다 보이도록 화면 맞추기
+    map.fitBounds(route.getBounds());
+  </script>
+</body>
+</html>
