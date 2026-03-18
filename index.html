@@ -3,65 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leaflet 여행 지도</title>
+  <title>Aomori & Hakodate Trip Map</title>
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
-
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
-    #map { width: 100%; height: 700px; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-
-  <!-- Leaflet JS -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
 
-  <script>
-    // 1) 지도 생성
-    const map = L.map('map').setView([51.5074, -0.1278], 6); // 런던 기준
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: #f6f6f6;
+    }
 
-    // 2) 배경지도(tile layer) 추가 - OpenStreetMap
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .day-label {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      padding: 8px 10px;
+      color: #111;
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .leaflet-tooltip-top:before,
+    .leaflet-tooltip-bottom:before,
+    .leaflet-tooltip-left:before,
+    .leaflet-tooltip-right:before {
+      display: none;
+    }
+
+    .legend {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 999;
+      background: rgba(255,255,255,0.96);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      font-size: 12px;
+      line-height: 1.5;
+      color: #222;
+    }
+
+    .legend .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 4px 0;
+    }
+
+    .legend .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #1f1f1f;
+    }
+
+    .legend .line {
+      width: 18px;
+      height: 3px;
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.15);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="legend">
+    <div><strong>Aomori / Hakodate Itinerary</strong></div>
+    <div class="row"><span class="dot"></span><span>대표 방문 구역</span></div>
+    <div class="row"><span class="line"></span><span>이동 흐름</span></div>
+  </div>
+
+  <script>
+    const map = L.map('map', {
+      zoomControl: true,
+      scrollWheelZoom: true
+    }).setView([40.95, 140.78], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 3) 마커 추가
-    const london = L.marker([51.5074, -0.1278]).addTo(map);
-    london.bindPopup('<b>Day 1</b><br>London').openPopup();
+    // Day 마커용 데이터
+    // 실제 지도 위치는 아오모리/하코다테 기준
+    // displayText만 인천 포함
+    const dayPoints = [
+      {
+        title: "Day 1",
+        displayText: "인천 / 아오모리",
+        lat: 40.8247,
+        lng: 140.7400
+      },
+      {
+        title: "Day 2",
+        displayText: "아오모리",
+        lat: 40.6030,
+        lng: 140.4640
+      },
+      {
+        title: "Day 3",
+        displayText: "아오모리",
+        lat: 40.6128,
+        lng: 141.2058
+      },
+      {
+        title: "Day 4",
+        displayText: "아오모리 / 하코다테",
+        lat: 41.7688,
+        lng: 140.7288
+      },
+      {
+        title: "Day 5",
+        displayText: "하코다테 / 인천",
+        lat: 41.7688,
+        lng: 140.7288
+      }
+    ];
 
-    // 4) 다른 도시 추가
-    const oxford = L.marker([51.7520, -1.2577]).addTo(map);
-    oxford.bindPopup('<b>Day 2</b><br>Oxford');
+    // 대표 방문 구역
+    const spotPoints = [
+      { name: "아오모리시", day: "Day 1", lat: 40.8247, lng: 140.7400 },
+      { name: "히로사키시", day: "Day 1", lat: 40.6030, lng: 140.4640 },
 
-    const edinburgh = L.marker([55.9533, -3.1883]).addTo(map);
-    edinburgh.bindPopup('<b>Day 3</b><br>Edinburgh');
+      { name: "히로사키시", day: "Day 2", lat: 40.6030, lng: 140.4640 },
+      { name: "샤요칸", day: "Day 2", lat: 40.9027, lng: 140.4556 },
+      { name: "아오모리시", day: "Day 2", lat: 40.8247, lng: 140.7400 },
 
-    // 5) 이동 경로(선) 추가
-    const route = L.polyline([
-      [51.5074, -0.1278],
-      [51.7520, -1.2577],
-      [55.9533, -3.1883]
-    ], {
-      color: '#b8860b',
-      weight: 3,
-      dashArray: '6, 6'
+      { name: "히로사키시", day: "Day 3", lat: 40.6030, lng: 140.4640 },
+      { name: "오이라세강", day: "Day 3", lat: 40.4670, lng: 140.8670 },
+      { name: "도와다시", day: "Day 3", lat: 40.6128, lng: 141.2058 },
+      { name: "호시노 리조트 아오모리야", day: "Day 3", lat: 40.6837, lng: 141.3685 },
+
+      { name: "호시노 리조트 아오모리야", day: "Day 4", lat: 40.6837, lng: 141.3685 },
+      { name: "하코다테", day: "Day 4", lat: 41.7688, lng: 140.7288 },
+
+      { name: "하코다테", day: "Day 5", lat: 41.7688, lng: 140.7288 }
+    ];
+
+    // Day 마커
+    dayPoints.forEach((point) => {
+      const marker = L.marker([point.lat, point.lng]).addTo(map);
+
+      marker.bindTooltip(
+        `<div class="day-label">
+          <div>${point.title}</div>
+          <div>${point.displayText}</div>
+        </div>`,
+        {
+          permanent: true,
+          direction: 'top',
+          offset: [0, -10],
+          opacity: 1
+        }
+      );
+
+      marker.bindPopup(
+        `<strong>${point.title}</strong><br>${point.displayText}`
+      );
+    });
+
+    // 대표 방문 구역 점
+    spotPoints.forEach((spot) => {
+      const circle = L.circleMarker([spot.lat, spot.lng], {
+        radius: 6,
+        color: '#1f1f1f',
+        weight: 1,
+        fillColor: '#1f1f1f',
+        fillOpacity: 0.9
+      }).addTo(map);
+
+      circle.bindPopup(
+        `<strong>${spot.day}</strong><br>${spot.name}`
+      );
+    });
+
+    // Day 이동 흐름 라인
+    const routeLineOutline = [
+      [40.8247, 140.7400],  // Day 1
+      [40.6030, 140.4640],  // Day 2
+      [40.6128, 141.2058],  // Day 3
+      [41.7688, 140.7288],  // Day 4
+      [41.7688, 140.7288]   // Day 5
+    ];
+
+    L.polyline(routeLineOutline, {
+      color: 'rgba(0,0,0,0.18)',
+      weight: 7,
+      opacity: 0.7,
+      lineCap: 'round',
+      lineJoin: 'round'
     }).addTo(map);
 
-    // 6) 전체 경로가 다 보이도록 화면 맞추기
-    map.fitBounds(route.getBounds());
+    L.polyline(routeLineOutline, {
+      color: '#ffffff',
+      weight: 4,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    const bounds = L.latLngBounds([
+      ...dayPoints.map(p => [p.lat, p.lng]),
+      ...spotPoints.map(s => [s.lat, s.lng])
+    ]);
+    map.fitBounds(bounds.pad(0.18));
   </script>
 </body>
 </html>
